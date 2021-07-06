@@ -191,23 +191,15 @@ func (s *Server) getCheConfigMapData() (cheEnv map[string]string, err error) {
 
 	if s.deployContext.CheCluster.Spec.Server.UseInternalClusterSVCNames && !s.deployContext.CheCluster.Spec.Auth.ExternalIdentityProvider {
 		keycloakInternalURL = fmt.Sprintf("%s://%s.%s.svc:8080/auth", "http", deploy.IdentityProviderName, s.deployContext.CheCluster.Namespace)
-	} else {
-		keycloakInternalURL = keycloakURL
 	}
 
 	// If there is a devfile registry deployed by operator
-	if !s.deployContext.CheCluster.Spec.Server.ExternalDevfileRegistry {
-		if s.deployContext.CheCluster.Spec.Server.UseInternalClusterSVCNames {
-			devfileRegistryInternalURL = fmt.Sprintf("http://%s.%s.svc:8080", deploy.DevfileRegistryName, s.deployContext.CheCluster.Namespace)
-		} else {
-			devfileRegistryInternalURL = s.deployContext.CheCluster.Status.DevfileRegistryURL
-		}
+	if s.deployContext.CheCluster.Spec.Server.UseInternalClusterSVCNames && !s.deployContext.CheCluster.Spec.Server.ExternalDevfileRegistry {
+		devfileRegistryInternalURL = fmt.Sprintf("http://%s.%s.svc:8080", deploy.DevfileRegistryName, s.deployContext.CheCluster.Namespace)
 	}
 
 	if s.deployContext.CheCluster.Spec.Server.UseInternalClusterSVCNames && !s.deployContext.CheCluster.Spec.Server.ExternalPluginRegistry {
 		pluginRegistryInternalURL = fmt.Sprintf("http://%s.%s.svc:8080/v3", deploy.PluginRegistryName, s.deployContext.CheCluster.Namespace)
-	} else {
-		pluginRegistryInternalURL = pluginRegistryURL
 	}
 
 	if s.deployContext.CheCluster.Spec.Server.UseInternalClusterSVCNames {
@@ -215,8 +207,6 @@ func (s *Server) getCheConfigMapData() (cheEnv map[string]string, err error) {
 		webSocketEndpoint = fmt.Sprintf("ws://%s.%s.svc:8080/api/websocket", deploy.CheServiceName, s.deployContext.CheCluster.Namespace)
 		webSocketEndpointMinor = fmt.Sprintf("ws://%s.%s.svc:8080/api/websocket-minor", deploy.CheServiceName, s.deployContext.CheCluster.Namespace)
 	} else {
-		cheInternalAPI = cheAPI
-
 		wsprotocol := "ws"
 
 		if tlsSupport {
