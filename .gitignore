@@ -113,5 +113,7 @@ deploy/olm-catalog/nightly/eclipse-che-preview-kubernetes/generated
 deploy/olm-catalog/nightly/eclipse-che-preview-openshift/generated
 deploy/olm-catalog/stable/eclipse-che-preview-kubernetes/generated
 deploy/olm-catalog/stable/eclipse-che-preview-openshift/generated
+deploy/olm-catalog/development-8/eclipse-che-preview-kubernetes/generated
+deploy/olm-catalog/development-8/eclipse-che-preview-openshift/generated
 
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode

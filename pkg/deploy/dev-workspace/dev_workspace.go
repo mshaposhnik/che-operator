@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	orgv1 "github.com/eclipse-che/che-operator/pkg/apis/org/v1"
 	"github.com/eclipse-che/che-operator/pkg/deploy"
@@ -37,13 +38,15 @@ import (
 )
 
 var (
-	DevWorkspaceNamespace      = "devworkspace-controller"
-	DevWorkspaceCheNamespace   = "devworkspace-che"
-	DevWorkspaceWebhookName    = "controller.devfile.io"
-	DevWorkspaceServiceAccount = "devworkspace-controller-serviceaccount"
-	DevWorkspaceDeploymentName = "devworkspace-controller-manager"
-	SubscriptionResourceName   = "subscriptions"
-	CheManagerResourcename     = "chemanagers"
+	DevWorkspaceNamespace             = "devworkspace-controller"
+	DevWorkspaceCheNamespace          = "devworkspace-che"
+	DevWorkspaceWebhookName           = "controller.devfile.io"
+	DevWorkspaceServiceAccount        = "devworkspace-controller-serviceaccount"
+	DevWorkspaceDeploymentName        = "devworkspace-controller-manager"
+	SubscriptionResourceName          = "subscriptions"
+	CheManagerResourcename            = "chemanagers"
+	ClusterServiceVersionResourceName = "clusterserviceversions"
+	DevWorkspaceCSVNameWithouVersion  = "devworkspace-operator"
 
 	OpenshiftDevWorkspaceTemplatesPath     = "/tmp/devworkspace-operator/templates/deployment/openshift/objects"
 	OpenshiftDevWorkspaceCheTemplatesPath  = "/tmp/devworkspace-che-operator/templates/deployment/openshift/objects"
@@ -105,6 +108,11 @@ func ReconcileDevWorkspace(deployContext *deploy.DeployContext) (bool, error) {
 		return true, nil
 	}
 
+	devWorkspaceExists := checkIfDevworkspaceIsInstalled(deployContext)
+	if devWorkspaceExists {
+		return true, nil
+	}
+
 	// do nothing if dev workspace is disabled
 	if !deployContext.CheCluster.Spec.DevWorkspace.Enable {
 		return true, nil
@@ -142,6 +150,27 @@ func ReconcileDevWorkspace(deployContext *deploy.DeployContext) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func checkIfDevworkspaceIsInstalled(deployContext *deploy.DeployContext) bool {
+	// If subscriptions resource doesn't exist in cluster WTO as well will not be present
+	if !util.HasK8SResourceObject(deployContext.ClusterAPI.DiscoveryClient, ClusterServiceVersionResourceName) {
+		return false
+	}
+
+	csvList := &operatorsv1alpha1.ClusterServiceVersionList{}
+	err := deployContext.ClusterAPI.NonCachedClient.List(context.TODO(), csvList, &client.ListOptions{})
+	if err != nil {
+		return false
+	}
+
+	for _, csv := range csvList.Items {
+		if strings.Contains(csv.Name, DevWorkspaceCSVNameWithouVersion) {
+			return true
+		}
+	}
+
+	return false
 }
 
 func checkWebTerminalSubscription(deployContext *deploy.DeployContext) error {
