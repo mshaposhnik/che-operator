@@ -101,6 +101,7 @@ rules:
     verbs:
       - get
       - create
+      - update
       - delete
   - apiGroups:
       - authorization.openshift.io
@@ -118,6 +119,7 @@ rules:
     verbs:
       - get
       - create
+      - update
       - delete
   - apiGroups:
       - rbac.authorization.k8s.io
